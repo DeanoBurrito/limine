@@ -190,6 +190,7 @@ struct file_handle *tftp_open(struct volume *part, const char *server_addr, cons
 
     struct file_handle *handle = ext_mem_alloc(sizeof(struct file_handle));
 
+    handle->efi_part_handle = part->efi_handle;
     handle->size = file_size;
     handle->is_memfile = true;
 
