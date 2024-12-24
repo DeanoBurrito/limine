@@ -295,19 +295,14 @@ void prepare_efi_tables(struct boot_param *p, char *config) {
     }
 
     {
-        EFI_MEMORY_DESCRIPTOR tmp_mmap[1];
-        size_t mmap_size = sizeof(tmp_mmap);
-        UINTN mmap_key = 0;
+        size_t buff_size = sizeof(struct linux_efi_boot_memmap) + efi_mmap_size + 4096;
 
-        gBS->GetMemoryMap(&efi_mmap_size, tmp_mmap, &mmap_key, &efi_desc_size, &efi_desc_ver);
-        mmap_size += 4096 + sizeof(struct linux_efi_boot_memmap);
-
-        ret = gBS->AllocatePool(EfiLoaderData, efi_mmap_size, (void **)&p->memmap);
+        ret = gBS->AllocatePool(EfiLoaderData, buff_size, (void **)&p->memmap);
         if (ret != EFI_SUCCESS) {
             panic(true, "linux: failed to allocate UEFI memory map");
         }
 
-        p->memmap->buff_size = mmap_size;
+        p->memmap->buff_size = buff_size;
 
         EFI_GUID memmap_table_guid = { 0x800f683f, 0xd08b, 0x423a, { 0xa2, 0x93, 0x96, 0x5c, 0x3c, 0x6f, 0xe2, 0xb4}};
         ret = gBS->InstallConfigurationTable(&memmap_table_guid, p->memmap);
