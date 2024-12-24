@@ -405,34 +405,7 @@ noreturn void linux_load(char *config, char *cmdline) {
     struct boot_param p;
     memset(&p, 0, sizeof(p));
     p.cmdline = cmdline;
-
-    char *dtb_path = config_get_value(config, 0, "DTB_PATH");
-    if (dtb_path) {
-        struct file_handle *dtb_file;
-        if ((dtb_file = uri_open(dtb_path)) == NULL)
-            panic(true, "linux: Failed to open device tree blob with path `%#`. Is the path correct?", dtb_path);
-
-
-        void *dtb = freadall(dtb_file, MEMMAP_BOOTLOADER_RECLAIMABLE);
-        fclose(dtb_file);
-
-        // TODO(qookie): This is a copy of the logic in get_device_tree_blob
-        size_t s = fdt_totalsize(dtb);
-
-        printv("linux: loaded dtb at %p, size %x\n", dtb, s);
-
-        void *new_dtb = ext_mem_alloc(s + 0x1000);
-
-        int ret = fdt_open_into(dtb, new_dtb, s + 0x1000);
-        if (ret < 0) {
-            panic(true, "linux: failed to resize new DTB");
-        }
-
-        p.dtb = new_dtb;
-    } else {
-        // Hopefully 4K should be enough (mainly depends on the length of cmdline)
-        p.dtb = get_device_tree_blob(0x1000);
-    }
+    p.dtb = get_device_tree_blob(config, 0x1000);
 
     struct file_handle *kernel_file;
 

@@ -336,7 +336,7 @@ static inline bool riscv_check_isa_extension(const char *ext, size_t *maj, size_
     return riscv_check_isa_extension_for(bsp_hartid, ext, maj, min);
 }
 
-void init_riscv(void);
+void init_riscv(const char *config);
 
 #elif defined (__loongarch64)
 

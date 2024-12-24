@@ -6,6 +6,8 @@
 #include <lib/print.h>
 #include <lib/trace.h>
 #include <lib/real.h>
+#include <lib/config.h>
+#include <lib/uri.h>
 #include <fs/file.h>
 #include <mm/pmm.h>
 #include <libfdt/libfdt.h>
@@ -111,34 +113,62 @@ uint32_t hex2bin(uint8_t *str, uint32_t size) {
 
 #if defined (UEFI)
 
-void *get_device_tree_blob(size_t extra_size) {
+void *get_device_tree_blob(const char *config, size_t extra_size) {
     int ret;
 
-    EFI_GUID dtb_guid = EFI_DTB_TABLE_GUID;
-    for (size_t i = 0; i < gST->NumberOfTableEntries; i++) {
-        EFI_CONFIGURATION_TABLE *cur_table = &gST->ConfigurationTable[i];
-        if (memcmp(&cur_table->VendorGuid, &dtb_guid, sizeof(EFI_GUID)))
-            continue;
+    size_t size = 0;
+    void *dtb = NULL;
 
-        size_t s = fdt_totalsize(cur_table->VendorTable);
+    {
+        char *dtb_path = config_get_value(config, 0, "DTB_PATH");
+        if (dtb_path) {
+            struct file_handle *dtb_file;
+            if ((dtb_file = uri_open(dtb_path)) == NULL)
+                panic(true, "dtb: Failed to open device tree blob with path `%#`. Is the path correct?", dtb_path);
 
-        printv("efi: found dtb at %p, size %x\n", cur_table->VendorTable, s);
+            dtb = freadall(dtb_file, MEMMAP_BOOTLOADER_RECLAIMABLE);
+            size = dtb_file->size;
+            fclose(dtb_file);
+            printv("dtb: loaded dtb at %p from file `%#`\n", dtb, dtb_path);
+        }
+    }
+
+    if (!dtb) {
+        EFI_GUID dtb_guid = EFI_DTB_TABLE_GUID;
+        for (size_t i = 0; i < gST->NumberOfTableEntries; i++) {
+            EFI_CONFIGURATION_TABLE *cur_table = &gST->ConfigurationTable[i];
+            if (memcmp(&cur_table->VendorGuid, &dtb_guid, sizeof(EFI_GUID)))
+                continue;
+            dtb = cur_table->VendorTable;
+            printv("dtb: found dtb at %p via EFI\n", cur_table->VendorTable);
+            break;
+        }
+    }
+
+    if (extra_size == 0) {
+        return dtb;
+    }
+
+    if (dtb) {
+        size_t s = fdt_totalsize(dtb);
+
+        printv("efi: dtb has size %x\n", s);
 
         void *new_tab = ext_mem_alloc(s + extra_size);
 
-        ret = fdt_open_into(cur_table->VendorTable, new_tab, s + extra_size);
+        ret = fdt_open_into(dtb, new_tab, s + extra_size);
         if (ret < 0) {
             panic(true, "dtb: failed to resize new DTB");
+        }
+
+        if (size) {
+            pmm_free(dtb, size);
         }
 
         return new_tab;
     }
 
-    if (extra_size == 0) {
-        return NULL;
-    }
-
-    void *dtb = ext_mem_alloc(extra_size);
+    dtb = ext_mem_alloc(extra_size);
 
     ret = fdt_create_empty_tree(dtb, extra_size);
     if (ret < 0) {

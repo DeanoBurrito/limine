@@ -21,7 +21,8 @@ struct limine_mp_info *init_smp(size_t   *cpu_count,
 
 #elif defined (__aarch64__)
 
-struct limine_mp_info *init_smp(size_t   *cpu_count,
+struct limine_mp_info *init_smp(const char *config,
+                                 size_t   *cpu_count,
                                  uint64_t *bsp_mpidr,
                                  pagemap_t pagemap,
                                  uint64_t  mair,

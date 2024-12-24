@@ -224,8 +224,8 @@ static void init_riscv_fdt(const void *fdt) {
     }
 }
 
-void init_riscv(void) {
-    void *fdt = get_device_tree_blob(0);
+void init_riscv(const char *config) {
+    void *fdt = get_device_tree_blob(config, 0);
     if (fdt != NULL) {
         init_riscv_fdt(fdt);
     } else if (acpi_get_rsdp()) {

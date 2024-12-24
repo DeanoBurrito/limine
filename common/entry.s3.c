@@ -177,7 +177,6 @@ noreturn void stage3_common(void) {
 #else
 #error riscv: only UEFI is supported
 #endif
-    init_riscv();
 #endif
 
     term_notready();

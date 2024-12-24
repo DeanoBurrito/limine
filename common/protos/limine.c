@@ -405,6 +405,10 @@ static void *_get_request(uint64_t id[4]) {
 #define FEAT_END } while (0);
 
 noreturn void limine_load(char *config, char *cmdline) {
+#if defined (__riscv)
+    init_riscv(config);
+#endif
+
 #if defined (__x86_64__) || defined (__i386__)
     uint32_t eax, ebx, ecx, edx;
 #endif
@@ -1015,7 +1019,7 @@ FEAT_START
         fclose(dtb_file);
     } else {
 #if defined (UEFI)
-        dtb = get_device_tree_blob(0);
+        dtb = get_device_tree_blob(config, 0);
 #else
         break;
 #endif
@@ -1415,7 +1419,7 @@ FEAT_START
 #elif defined (__aarch64__)
     uint64_t bsp_mpidr;
 
-    mp_info = init_smp(&cpu_count, &bsp_mpidr,
+    mp_info = init_smp(config, &cpu_count, &bsp_mpidr,
                         pagemap, LIMINE_MAIR(fb_attr), LIMINE_TCR(tsz, pa), LIMINE_SCTLR,
                         direct_map_offset);
 #elif defined (__riscv)

@@ -514,14 +514,15 @@ static struct limine_mp_info *try_acpi_smp(size_t   *cpu_count,
     return ret;
 }
 
-static struct limine_mp_info *try_dtb_smp(size_t   *cpu_count,
+static struct limine_mp_info *try_dtb_smp(const char *config,
+                                           size_t   *cpu_count,
                                            uint64_t *_bsp_mpidr,
                                            pagemap_t pagemap,
                                            uint64_t  mair,
                                            uint64_t  tcr,
                                            uint64_t  sctlr,
                                            uint64_t  hhdm_offset) {
-    void *dtb = get_device_tree_blob(0);
+    void *dtb = get_device_tree_blob(config, 0);
 
     uint64_t bsp_mpidr;
     asm volatile ("mrs %0, mpidr_el1" : "=r"(bsp_mpidr));
@@ -695,7 +696,8 @@ static struct limine_mp_info *try_dtb_smp(size_t   *cpu_count,
 }
 
 
-struct limine_mp_info *init_smp(size_t   *cpu_count,
+struct limine_mp_info *init_smp(const char *config,
+                                 size_t   *cpu_count,
                                  uint64_t *bsp_mpidr,
                                  pagemap_t pagemap,
                                  uint64_t  mair,
@@ -710,9 +712,10 @@ struct limine_mp_info *init_smp(size_t   *cpu_count,
         return info;
 
     // No RSDP means no ACPI, try device trees in that case.
-    if (get_device_tree_blob(0) && (info = try_dtb_smp(
-                                        cpu_count, bsp_mpidr, pagemap,
-                                        mair, tcr, sctlr, hhdm_offset)))
+    if (get_device_tree_blob(config, 0)
+                    && (info = try_dtb_smp(
+                                config, cpu_count, bsp_mpidr, pagemap,
+                                mair, tcr, sctlr, hhdm_offset)))
         return info;
 
     printv("Failed to figure out how to start APs.");
