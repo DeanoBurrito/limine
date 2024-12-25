@@ -111,8 +111,6 @@ uint32_t hex2bin(uint8_t *str, uint32_t size) {
     return value;
 }
 
-#if defined (UEFI)
-
 void *get_device_tree_blob(const char *config, size_t extra_size) {
     int ret;
 
@@ -133,6 +131,7 @@ void *get_device_tree_blob(const char *config, size_t extra_size) {
         }
     }
 
+#if defined (UEFI)
     if (!dtb) {
         EFI_GUID dtb_guid = EFI_DTB_TABLE_GUID;
         for (size_t i = 0; i < gST->NumberOfTableEntries; i++) {
@@ -144,6 +143,7 @@ void *get_device_tree_blob(const char *config, size_t extra_size) {
             break;
         }
     }
+#endif
 
     if (extra_size == 0) {
         return dtb;
@@ -187,6 +187,8 @@ void *get_device_tree_blob(const char *config, size_t extra_size) {
 
     return dtb;
 }
+
+#if defined (UEFI)
 
 #if defined (__riscv)
 

@@ -1174,6 +1174,10 @@ timeout_aborted:
 }
 
 noreturn void boot(char *config) {
+#if defined (__riscv)
+    init_riscv(config);
+#endif
+
     char *cmdline = config_get_value(config, 0, "KERNEL_CMDLINE");
     if (!cmdline) {
         cmdline = config_get_value(config, 0, "CMDLINE");

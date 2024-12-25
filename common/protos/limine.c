@@ -405,10 +405,6 @@ static void *_get_request(uint64_t id[4]) {
 #define FEAT_END } while (0);
 
 noreturn void limine_load(char *config, char *cmdline) {
-#if defined (__riscv)
-    init_riscv(config);
-#endif
-
 #if defined (__x86_64__) || defined (__i386__)
     uint32_t eax, ebx, ecx, edx;
 #endif
@@ -1007,23 +1003,7 @@ FEAT_START
         break; // next feature
     }
 
-    void *dtb = NULL;
-    char *dtb_path = config_get_value(config, 0, "DTB_PATH");
-
-    if (dtb_path) {
-        struct file_handle *dtb_file;
-        if ((dtb_file = uri_open(dtb_path)) == NULL)
-            panic(true, "limine: Failed to open device tree blob with path `%#`. Is the path correct?", dtb_path);
-
-        dtb = freadall(dtb_file, MEMMAP_BOOTLOADER_RECLAIMABLE);
-        fclose(dtb_file);
-    } else {
-#if defined (UEFI)
-        dtb = get_device_tree_blob(config, 0);
-#else
-        break;
-#endif
-    }
+    void *dtb = get_device_tree_blob(config, 0);
 
     if (dtb) {
         // Delete all /memory@... nodes.
@@ -1050,7 +1030,6 @@ FEAT_START
         dtb_response->dtb_ptr = reported_addr(dtb);
         dtb_request->response = reported_addr(dtb_response);
     }
-
 FEAT_END
 
     // Stack size
