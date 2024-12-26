@@ -1,3 +1,19 @@
+2024-12-26  mintsuki  <mintsuki@protonmail.com>
+
+    *** Release 8.6.1 ***
+
+    Noteworthy changes compared to the previous release, 8.6.0:
+
+    Bug fixes:
+        - Propagate EFI PXE device handle properly when chainloading.
+        - Ensure that, when specifying a `dtb_path`, extra space is properly
+          allocated just as is done for EFI-provided DTBs.
+
+    Miscellaneous:
+        - Linux on RISCs: General code clean up; pass EFI memory map and initrd
+          information as EFI configuration tables alongside already passed DTB
+          parameters for the same, in preparation for loongarch64 support.
+
 2024-12-05  mintsuki  <mintsuki@protonmail.com>
 
     *** Release 8.6.0 ***
