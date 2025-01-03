@@ -116,7 +116,7 @@ if ! test -f version; then
     clone_repo_commit \
         https://git.kernel.org/pub/scm/utils/dtc/dtc.git \
         dtc \
-        99031e3a4a6e479466ae795790b44727434ca27d
+        2d10aa2afe35527728db30b35ec491ecb6959e5c
     rm -rf common/libfdt
     cp -rp dtc/libfdt common/
     find common/libfdt/ -type f -not -name '*.c' -not -name '*.h' -delete
